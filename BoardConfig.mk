@@ -1,4 +1,5 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2012 bikedude880
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,115 +13,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This file sets variables that control the way modules are built
-# thorughout the system. It should not be used to conditionally
-# disable makefiles (the proper mechanism to control what gets
-# included in a build is to use PRODUCT_PACKAGES in a product
-# definition file).
-#
-
-# WARNING: This line must come *before* including the proprietary
-# variant, so that it gets overwritten by the parent (which goes
-# against the traditional rules of inheritance).
-USE_CAMERA_STUB := false
-#BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
-
-# inherit from the proprietary version
+# Use the non-open-source part, if present
 -include vendor/moto/shadow/BoardConfigVendor.mk
 
-# use pre-kernel.35 vold usb mounting
-BOARD_USE_USB_MASS_STORAGE_SWITCH := true
-BOARD_USE_FROYO_LIBCAMERA := true
+# Use the part that is common between all tunas
+include device/moto/omap34com/BoardConfig.mk
 
-# use charge_counter for battery
-BOARD_USE_BATTERY_CHARGE_COUNTER := true
-
-TARGET_BOARD_PLATFORM := omap3
-
-TARGET_CPU_ABI := armeabi-v7a
-TARGET_CPU_ABI2 := armeabi
-TARGET_ARCH_VARIANT := armv7-a-neon
-TARGET_GLOBAL_CFLAGS += -mtune=cortex-a8
-TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a8
-TARGET_ARCH_VARIANT_CPU := cortex-a8
-TARGET_ARCH_VARIENT_FPU := neon
-
-# this is so that we build the Shadow-specific hardware shit
-BOARD_GLOBAL_CFLAGS += -DSHADOW_HARDWARE
-SHADOW_HARDWARE := true
-
-TARGET_NO_BOOTLOADER := false
+# Processor
 TARGET_BOOTLOADER_BOARD_NAME := shadow
 
-# Wifi related defines
-BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := libCustomWifi
-WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WLAN_DEVICE           := wl1271
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
-BOARD_WLAN_TI_STA_DK_ROOT   := hardware/ti/wlan/wl1271
-WIFI_DRIVER_MODULE_ARG      := ""
-WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-WIFI_FIRMWARE_LOADER        := "wlan_loader"
-WIFI_DRIVER_FW_STA_PATH     := "/system/etc/wifi/fw_wlan1271.bin"
-WIFI_DRIVER_FW_AP_PATH      := "/system/etc/wifi/fw_tiwlan_ap.bin"
+# Command line
+TARGET_PREBUILT_KERNEL := device/moto/shadow/kernel
+BOARD_KERNEL_CMDLINE := console=ttyS2,115200n8 rw mem=498M@0x80C00000 init=/init ip=off brdrev=P3A androidboot.bootloader=0x0000 mmcparts=mmcblk1:p7(pds),p15(boot),p16(recovery),p17(cdrom),p18(misc),p19(cid),p20(kpanic),p21(system),p22(cache),p23(preinstall),p24(userdata) androidboot.mode=reboot androidboot.bootloader=D011 androidboot.serialno=0A3A94CF0602D02
 
+# Audio
 BOARD_USES_GENERIC_AUDIO := false
 BOARD_USES_AUDIO_LEGACY := true
+ifdef BOARD_USES_AUDIO_LEGACY
+COMMON_GLOBAL_CFLAGS += -DBOARD_USES_AUDIO_LEGACY
+endif
+TARGET_PROVIDES_LIBAUDIO := true
 
-BOARD_KERNEL_CMDLINE := console=ttyS2,115200n8 rw mem=498M@0x80C00000 vram=20M omapgpu.vram=0:4M,1:16M,2:16MT init=/init ip=off motobldlabel=none mmcparts=mmcblk1:p1(mbmloader),p2(mbm),p3(mbmbackup),p4(ebr),p5(bploader),p6(cdt.bin),p7(pds),p8(lbl),p9(lbl_backup),p10(logo.bin),p11(sp),p12(devtree),p13(devtree_backup),p14(bpsw),p15(boot),p16(recovery),p17(cdrom),p18(misc),p19(cid),p20(kpanic),p21(system),p22(cache),p23(preinstall),p24(userdata)
-BOARD_KERNEL_BASE := 0x10000000
+# Camera
+BOARD_OVERLAY_BASED_CAMERA_HAL := true
 
-BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_BCM := true
-
-BOARD_EGL_CFG := device/moto/shadow/egl.cfg
-BOARD_USE_LEGACY_TOUCHSCREEN := true
-
-BOARD_BOOTIMAGE_PARTITION_SIZE := 0x003fffff
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x004fffff
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0edfffff   # limited so we enforce room to grow
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x105c0000
-BOARD_FLASH_BLOCK_SIZE := 131072
-
-#TARGET_RECOVERY_UI_LIB := librecovery_ui_shadow librecovery_ui_generic
-
-#TARGET_RECOVERY_UPDATER_LIBS += librecovery_updater_generic
-
-TARGET_PREBUILT_KERNEL := device/moto/shadow/kernel
-
-#TARGET_NO_RECOVERY := true
+# Recovery
 TARGET_PREBUILT_RECOVERY_KERNEL := device/moto/shadow/kernel
+BOARD_MKE2FS := device/moto/shadow/releaseutils/mke2fs
 
-# OMX
-HARDWARE_OMX := true
-ifdef HARDWARE_OMX
-OMX_VENDOR := ti
-OMX_VENDOR_WRAPPER := TI_OMX_Wrapper
-BOARD_OPENCORE_LIBRARIES := libOMX_Core
-BOARD_OPENCORE_FLAGS := -DHARDWARE_OMX=1
-endif
+TARGET_PROVIDES_INIT_RC := true
 
-# OMAP
-OMAP_ENHANCEMENT := true
-ifdef OMAP_ENHANCEMENT
-COMMON_GLOBAL_CFLAGS += -DOMAP_ENHANCEMENT -DTARGET_OMAP4
-endif
-
-ifndef SHADOW_DEV_PHONE
-TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/moto/shadow/releasetools/shadow_ota_from_target_files
-
-#BOARD_HIJACK_LOG_ENABLE := true
-
-# shadow requires the common boot hijack
-TARGET_NEEDS_MOTOROLA_HIJACK := true
-
-TARGET_RECOVERY_PRE_COMMAND := "echo 1 > /data/.recovery_mode; sync;"
-TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
-endif
-
-BOARD_ALWAYS_INSECURE := true
-BOARD_HAS_LARGE_FILESYSTEM := true
-BOARD_MKE2FS := device/moto/shadow/mke2fs
-BOARD_HAS_SMALL_RECOVERY := true
+# UMS
+BOARD_MASS_STORAGE_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
+TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
+BOARD_USE_USB_MASS_STORAGE_SWITCH := true
+BOARD_CUSTOM_USB_CONTROLLER := ../../device/moto/shadow/UsbController.cpp
+BOARD_MTP_DEVICE := "/dev/mtp"
