@@ -67,7 +67,7 @@ ro.mot.master_clear.shredsd=false
 
 ro.mot.buttonlight.timeout=1
 persist.mot.proximity.touch=1
-mot.proximity.delay=450
+mot.proximity.delay=90
 mot.proximity.distance=60
 
 
@@ -108,4 +108,4 @@ debug.egl.callstack=1
 
 # force enable or force disable of hw renderer for the listed processes
 #hwui.whitelist=com.android.browser
-hwui.blacklist=com.android.vending:com.tmobile.themechooser
+hwui.blacklist=com.android.vending:com.tmobile.themechooser:com.bel.android.dspmanager:com.android.mms
