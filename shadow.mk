@@ -24,10 +24,6 @@
 # Device overlay and prebuilt directories
 DEVICE_PREBUILT := device/moto/shadow/prebuilt
 
-# Camera
-PRODUCT_PACKAGES := \
-	Camera
-
 # Audio + Bluetooth
 PRODUCT_COPY_FILES += \
 	device/moto/shadow/audio/libaudio.so:/system/lib/libaudio.so \
