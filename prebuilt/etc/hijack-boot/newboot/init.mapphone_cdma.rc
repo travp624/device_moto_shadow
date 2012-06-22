@@ -42,9 +42,9 @@ on post-fs
     # Power Management
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
-    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold 86
-    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate 46875
-    write /sys/power/sr_vdd1_autocomp 1
+#    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold 86
+#    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate 46875
+#    write /sys/power/sr_vdd1_autocomp 1
     write /sys/power/sr_vdd2_autocomp 1
 # Change ownership for vibrators
     chown system system /sys/class/timed_output/vibrator/enable
@@ -71,9 +71,9 @@ on post-fs
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660 /sys/class/rfkill/rfkill0/state
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
-    chmod 0660 /sys/class/rfkill/rfkill1/state
+#    chown bluetooth.bluetooth /sys/class/rfkill/rfkill1/type
+#    chown bluetooth.bluetooth /sys/class/rfkill/rfkill1/state
+#    chmod 0660 /sys/class/rfkill/rfkill1/state
 
 # Dont delete this line, used as event in bootmenu (cpu settings & postbootmenu)
     exec /system/bin/logwrapper postbootmenu
@@ -248,8 +248,7 @@ on boot
     chmod 0660 /sys/class/leds/torch-flash/flash_light
     chmod 0666 /sys/class/leds/spotlight/brightness
 
-# Kernel modules
-    insmod /system/lib/modules/symsearch.ko
+# Load traffic shaping modules
     insmod /system/lib/modules/ifb.ko
     insmod /system/lib/modules/act_mirred.ko
     insmod /system/lib/modules/sch_ingress.ko
@@ -257,24 +256,29 @@ on boot
     insmod /system/lib/modules/cls_u32.ko
     insmod /system/lib/modules/sch_htb.ko
     insmod /system/lib/modules/em_u32.ko
+
+# Load Authentec VPN kernel module
     insmod /system/lib/modules/vpnclient.ko
+
+# Install kernel modules
     insmod /system/lib/modules/netmux.ko
     insmod /system/lib/modules/netmux_linkdriver.ko
     insmod /system/lib/modules/modem_pm_driver.ko
-    insmod /system/lib/modules/xt_tcpmss.ko
-    insmod /system/lib/modules/xt_TCPMSS.ko
-    insmod /system/lib/modules/iptable_raw.ko
-    insmod /system/lib/modules/iptable_mangle.ko
+
     insmod /system/lib/modules/xt_multiport.ko
     insmod /system/lib/modules/xt_quota2.ko
     insmod /system/lib/modules/xt_owner2.ko
-    insmod /system/lib/modules/ip6_tables.ko
-    insmod /system/lib/modules/ip6table_filter.ko
-    insmod /system/lib/modules/ip6table_raw.ko
-    insmod /system/lib/modules/ip6table_mangle.ko
-    insmod /system/lib/modules/ip6t_REJECT.ko
-    insmod /system/lib/modules/ip6t_LOG.ko
-    insmod /system/lib/modules/sio-iosched.ko
+
+#    insmod /system/lib/modules/tun.ko
+#    insmod /system/lib/modules/symsearch.ko
+#    insmod /system/lib/modules/mmcfix.ko
+#    insmod /system/lib/modules/usbled.ko
+#    insmod /system/lib/modules/gpiofix.ko
+
+# Cifs module is actually not compiled by us
+#    insmod /system/lib/modules/nls_utf8.ko
+#    insmod /system/lib/modules/slow-work.ko
+#    insmod /system/lib/modules/cifs.ko
 
 # Set core max size (2G)
     setrlimit 4 2147483648 2147483648
@@ -335,7 +339,6 @@ service reboot_key /system/bin/reboot
 service usbd /system/bin/usbd
     class main
     user root
-    socket usbd stream 666 root system
 
 service start_commdrv /system/bin/sh /system/etc/motorola/comm_drv/commdrv_fs.sh
     class main
@@ -352,7 +355,7 @@ service battd /system/bin/battd
     class main
     socket battdsock stream 660 root system
     user root
-    group system 9001
+    group system
     oneshot
 
 # Bluetooth services.
@@ -391,53 +394,49 @@ on property:tcmd.unload_wlan=2
 
 # Ecompass daemon
 service akmd2 /system/bin/akmd2
-    class late_start
+    class main
     user compass
     group compass misc input
 
 # Wifi services
-service wlan_loader /system/bin/logwrapper /system/bin/wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i /system/etc/wifi/tiwlan.ini -e /pds/wifi/nvs_map.bin
+service wlan_loader /system/bin/wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i /system/etc/wifi/tiwlan.ini -e /pds/wifi/nvs_map.bin
     class main
     disabled
     oneshot
-
-service wpa_supplicant /system/bin/wpa_supplicant -Dtiwlan0 -itiwlan0 -c /data/misc/wifi/wpa_supplicant.conf
+service wpa_supplicant /system/bin/wpa_supplicant -Dtiwlan0 -itiwlan0 -c/data/misc/wifi/wpa_supplicant.conf
     class main
     socket wpa_tiwlan0 dgram 660 wifi wifi
     disabled
     oneshot
-
 service wlan_ap_loader /system/bin/logwrapper /system/bin/tiap_loader -f /system/etc/wifi/fw_tiwlan_ap.bin -i /system/etc/wifi/tiwlan_ap.ini -e /pds/wifi/nvs_map.bin
     disabled
     oneshot
-
-service hostapd /system/bin/hostapd -d /data/misc/wifi/hostapd.conf
+service hostapd /system/bin/logwrapper /system/bin/hostap -d /data/misc/wifi/hostapd.conf
     class main
     disabled
     oneshot
-
 service dhcpcd_tiwlan0 /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot
-
 service iprenew_tiwlan0 /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
 
-service baseimage /system/bin/cexec.out -T /system/lib/dsp/baseimage.dof
+service baseimage /system/bin/cexec.out -v -T /system/lib/dsp/baseimage.dof
     class main
     user media
     group media graphics
     oneshot
 
 service fmradio /system/bin/fmradioserver
-    class late_start
+    class main
     disabled
     user system
     group bluetooth net_bt_admin net_raw net_admin misc
 
+# 3D init
 service pvrsrvinit /system/bin/pvrsrvinit
     class core
     user root

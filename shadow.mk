@@ -24,13 +24,16 @@
 # Device overlay and prebuilt directories
 DEVICE_PREBUILT := device/moto/shadow/prebuilt
 
+# Camera
+PRODUCT_PACKAGES := \
+	Camera
+
 # Audio + Bluetooth
 PRODUCT_COPY_FILES += \
 	device/moto/shadow/audio/libaudio.so:/system/lib/libaudio.so \
 	device/moto/shadow/audio/liba2dp.so:/system/lib/liba2dp.so
 
 PRODUCT_PACKAGES += \
-	sensors.shadow \
 	audio.primary.omap3 \
 	libaudiohw_legacy \
 	audio.a2dp.default \
